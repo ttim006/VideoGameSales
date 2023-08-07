@@ -1,0 +1,31 @@
+Once we load the dataset onto BugQuery Sandbox, we examine the schema and identify the columns and their content, we name the data set vg-sales, and the table vg_data and the entire project vis called vg_sales-393913
+
+Next we check for duplicate values for Video Games by name
+SELECT Name, COUNT(Name)
+FROM `vgsales-393913.vg_sales.vg_data`
+GROUP BY Name
+HAVING COUNT(*) > 1
+
+The code above shows we have duplicate Game entries because of different platforms
+
+Then we check for Duplicate entries of games AND their platforms
+SELECT a.*
+FROM vgsales-393913.vg_sales.vg_data a
+    JOIN(SELECT Name, Platform, COUNT(*)
+    FROM vgsales-393913.vg_sales.vg_data
+    GROUP BY Name, Platform 
+    HAVING COUNT (*)> 1) b 
+ON a.Name = b.Name
+AND a.Platform = b.Platform
+ORDER BY a.Name
+
+This shows us 4 duplicate entries and it seems they have varying sales numbers, however, as neither of these titles are console exclusives, we can avoid them altogether
+
+Remove the DESC to find the first year, this data set ranges from 1980-2020
+SELECT Name, Year_Of_Release
+FROM `vgsales-393913.vg_sales.vg_data` 
+WHERE Year_Of_Release != 'N/A'
+ORDER BY Year_Of_Release DESC
+
+For our Analysis, we will stick to the years 2010-2017 for consisteny of data entries
+Now, we create a filtered table, of entries between 2010-2017 and only first party titles
