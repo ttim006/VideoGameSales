@@ -1,0 +1,93 @@
+---
+title: "Game Sales Markdown"
+author: "Malik Hossain"
+date: "2023-08-11"
+output: html_document
+---
+
+## An Analysis on video game sales data across the big three console platforms
+This analysis takes data from three different set from [this](https://www.kaggle.com/datasets/sidtwr/videogames-sales-dataset) Kaggle source and cleans each set for computing analyses on each and combining sets for clearer pictures
+
+### Setting up the environment
+Notes: Setting up my environment by loading the various packages used during the analysis and loading our datasets
+
+```{r loading packages, message=FALSE, warning=FALSE}
+library (tidyverse)
+library(here)
+library(ggplot2)
+library(skimr)
+library(janitor)
+library(dplyr)
+library(knitr)
+```
+
+```{r loading up datasets, echo=FALSE, paged.print=TRUE}
+ps4_sales<-read.csv("PS4_GamesSales.csv")
+print("PS4 Sales")
+print(head(ps4_sales))
+
+xbox_sales<-read.csv("XboxOne_GameSales.csv")
+print("XBox Sales")
+print(head(xbox_sales))
+
+vg_sales<-read.csv("Video_Games_Sales_as_at_22_Dec_2016.csv")
+print("General Video Game Sales")
+print(head(vg_sales))
+```
+
+```{r Performing cleaning on the sets, echo=FALSE}
+clean_ps4 <- ps4_sales %>% filter(Global != 0, Year != "N/A")
+clean_xbox <- xbox_sales %>% filter(Global != 0, Year != "N/A")
+clean_vg_sales <- vg_sales %>% filter(Global_Sales != 0, Year_of_Release != "N/A")
+```
+
+Visualizing PS4 sales by Year
+```{r echo=FALSE}
+yearly_ps4_sales<-clean_ps4 %>% group_by(Year)%>%summarize(sum(Global))
+colnames(yearly_ps4_sales)[2] = "sales"
+
+ggplot(data = yearly_ps4_sales) +
+  geom_col(mapping = aes(x = Year, y = sales, fill = "sales"))
+```
+
+Visualizing XBox sales by Year
+```{r echo=FALSE}
+yearly_xbox_sales<-clean_xbox %>% group_by(Year)%>%summarize(sum(Global))
+colnames(yearly_xbox_sales)[2] = "sales"
+
+ggplot(data = yearly_xbox_sales) +
+  geom_col(mapping = aes(x = Year, y = sales), fill = "cyan")
+```
+Comparing the two, we can see a clear lead for Ps4 sales during each year
+```{r echo=FALSE}
+sales_comp <- merge(x = yearly_ps4_sales, y = yearly_xbox_sales, by = "Year")
+colnames(sales_comp)[2] = "Ps4_Sales"
+colnames(sales_comp)[3] = "XBox_Sales"
+
+ggplot(data = sales_comp) +
+  geom_col(mapping = aes(x = Year, y = Ps4_Sales, fill = "ps4_Sales"))+
+  geom_col(mapping = aes(x = Year, y = XBox_Sales, fill = "xBox_Sales") )+
+  labs(y = "Sales", title = "Ps4 vs Xbox Game Sales")
+```
+
+Analyzing best selling genres of video games
+```{r echo=FALSE}
+genre_by_p <- clean_ps4 %>% group_by(Genre) %>% summarize(sum(Global)) 
+colnames(genre_by_p)[2] = "sales"
+print("PS4 sales by Genre")
+genre_by_p %>% arrange(-sales)
+
+genre_by_x <- clean_xbox %>% group_by(Genre) %>% summarize(sum(Global))
+colnames(genre_by_x)[2] = "sales"
+print("Xbox sales by Genre")
+genre_by_x %>% arrange(-sales)
+```
+It seems Action games have more popularity on ps4 and shooters have most popularity on xbox although shooters are a very close second place for ps4
+
+
+
+
+
+
+
+
